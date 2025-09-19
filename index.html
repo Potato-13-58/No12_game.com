@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パックンチョ</title>
+    <style>
+
+
+        
+
+
+#retryButton {
+  padding: 15px 30px;
+  border: none;
+  background-color: #e3d8b8;
+  color: #1c1c1c; 
+  font-family: "Segoe UI", sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 0px 10px rgba(255, 223, 0, 0.5); 
+}
+
+#retryButton:hover {
+  background-color: #b49e77; 
+  box-shadow: 0px 0px 15px rgba(255, 223, 0, 0.9); 
+  transform: scale(1.05); 
+}
+
+#retryButton:active {
+  background-color: #8e7b5c;
+  box-shadow: 0px 0px 8px rgba(255, 223, 0, 0.7);
+  transform: scale(0.95); /* 押し込み感を追加 */
+}
+
+    body, html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #1c1c1c;
+    }
+
+    canvas {
+        display: block;
+        background-color: #000;
+        border: 2px solid #e3d8b8;
+        box-shadow: 0px 0px 20px rgba(255, 223, 0, 0.7);
+    }
+
+    .hud {
+font-family: "Arial", sans-serif; /* フォントをArialに変更 */
+font-weight: bold;
+color: #e3d8b8;
+text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+position: absolute;
+top: 20px;
+left: 20px;
+}
+
+.hud .score, .hud .timer, .hud .high-score {
+    font-size: 24px;
+    margin-bottom: 5px; 
+    display: block; 
+    white-space: nowrap; 
+}
+
+    .hud .score.highlight {
+        animation: glow 1s ease-in-out;
+    }
+
+    @keyframes glow {
+        0% { color: #e3d8b8; text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8); }
+        50% { color: #fff700; text-shadow: 0px 0px 20px rgba(255, 223, 0, 1); }
+        100% { color: #e3d8b8; text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8); }
+    }
+
+    .item-description, #soundNotification {
+    position: absolute;
+    top: calc(30px - 50px); 
+    right: -600px; 
+    background: rgba(0, 0, 0, 0.7);
+    color: #e3d8b8;
+    padding: 10px;
+    border-radius: 8px;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 18px;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.8);
+    display: none;
+    z-index: 100; 
+}
+
+#soundNotification {
+    position: absolute;
+    /* キャンバスの下に近づけて表示 */
+    top: calc(100% - 100px); /* キャンバスの高さ - マージン */
+    left: 50%; /* 中央寄せ */
+    transform: translateX(-50%);
+    /* 最大幅を設定 */
+    max-width: 90%; /* 画面幅の90%を最大幅に */
+    width: auto;
+    text-align: center;
+    color: white;
+    font-size: 24px;
+    font-family: 'Arial', sans-serif;
+    background: transparent;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+    word-wrap: break-word; /* 長い単語でも折り返す */
+    z-index: 100; /* 他の要素の上に表示 */
+}
+
+    #settingsModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background: rgba(0, 0, 0, 0.8); 
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1000;
+  box-shadow: 0px 0px 30px rgba(255, 223, 0, 0.9); 
+  color: #e3d8b8; 
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8); 
+}
+
+#settingsModal h2 {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+#settingsModal label {
+  display: block;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 18px;
+  margin: 10px 0;
+  color: #e3d8b8;
+}
+
+#settingsModal input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+#settingsModal button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: none;
+  background-color: #e3d8b8; 
+  color: #1c1c1c; 
+  font-family: "Segoe UI", sans-serif;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 0px 10px rgba(255, 223, 0, 0.5); 
+}
+
+#settingsModal button:hover {
+  background-color: #b49e77; 
+  box-shadow: 0px 0px 15px rgba(255, 223, 0, 0.9);
+  transform: scale(1.05); 
+}
+
+#settingsModal button:active {
+  background-color: #8e7b5c; /* 押し込み効果 */
+  box-shadow: 0px 0px 8px rgba(255, 223, 0, 0.7);
+  transform: scale(0.95);
+}
+
+#overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 半透明の黒背景 */
+  z-index: 999;
+}
+
+#settingsButton {
+  position: absolute;
+  bottom: 10px; /* 右下に配置するためtopではなくbottomを使用 */
+  right: 10px;
+  background-color: #e3d8b8;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#settingsButton:hover {
+  background-color: #b49e77;
+  color: #f0f0f0;
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+#itemStatus {
+    font-family: "Arial", sans-serif; 
+    font-size: 18px;
+    color: #e3d8b8;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+    margin-top: 10px;
+    position: absolute;
+    top: 120px; 
+    left: 20px;
+}
+
+#soundNotification {
+    text-align: center;
+    width: auto;
+}
+
+/* スタイルシートの既存の部分に追加 */
+.power-up {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #ffdf00;
+  box-shadow: 0px 0px 10px rgba(255, 223, 0, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+/* 紫色のアイテムのスタイルを追加 */
+.power-up.purple {
+  background-color: #800080; /* 紫色 */
+  box-shadow: 0px 0px 10px rgba(128, 0, 128, 0.7); /* 紫色の光を強調 */
+}
+
+            </style>
+</head>
+<body>
+
+
+    <div id="soundNotification" style="display: none; position: absolute; bottom: 20px; width: 100%; text-align: center; color: white; font-size: 24px; font-family: 'Arial', sans-serif;"></div>
+    <button id="settingsButton">設定</button>
+
+
+
+    <!-- 設定モーダル内に音量スライダーを追加 -->
+<div id="settingsModal">
+    <h2>設定</h2>
+    <label>
+        <input type="checkbox" id="muteSounds"> 効果音をミュート
+    </label>
+    <br>
+    <label>
+        <input type="checkbox" id="muteBGM"> BGMをミュート
+    </label>
+    <br>
+    <label>
+        BGM音量: <input type="range" id="bgmVolume" min="0" max="1" step="0.1" value="1">
+    </label>
+    <br>
+    <label>
+        効果音音量: <input type="range" id="effectsVolume" min="0" max="1" step="0.1" value="1">
+    </label>
+    <br>
+    <label>
+        <input type="checkbox" id="showGameOverImage"> ゲームオーバー画像を表示
+    <br>
+    <p>
+</label>
+<label>最高ハイスコア116246 </label>
+</p>
+
+    <button onclick="closeSettingsModal()">閉じる</button>
+</div>
+    <div id="overlay"></div>
+    <img id="gameOverImage1" src="gameover1.jpg" style="display: none; position: absolute; top: 200; left: 200; z-index: 11;">
+    <img id="gameOverImage2" src="gameover2.jpg" style="display: none; position: absolute; top: 200; left: 200; z-index: 11;">
+    <img id="gameOverImage3" src="gameover3.jpg" style="display: none; position: absolute; top: 200; left: 200; z-index: 11;">
+    <img id="gameOverImage4" src="gameover4.jpg" style="display: none; position: absolute; top: 200; left: 200; z-index: 11;">
+    <img id="gameOverImage5" src="gameOver5.gif" style="display: none; position: absolute; top: 200; left: 200; z-index: 11;">
+    
+    <canvas id="gameCanvas" width="1400" height="600"></canvas>
+<div id="retryButtonContainer" style="text-align: center; margin-top: 10px;">
+    <button id="retryButton" style="display:none;" onclick="restartGame()">Retry</button>
+</div>
+
+
+
+
+    <div class="hud">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="high-score">High Score: <span id="highScore">0</span></div>
+        <div class="timer">Time: <span id="timer">0</span> 秒</div>
+        <div id="itemStatus" style="font-size: 18px; margin-top: 530px;">無敵時間: <span id="invincibilityTimer">0</span>s<br>スコア倍増時間: <span id="scoreBoostTimer">0</span>s</div>
+        <span id="obstacleSlowdownTimer" style="display: none;">障害物速度低下: <span id="obstacleSlowdownTime">0</span>s</span>
+
+    <div id="itemDescription" class="item-description"></div>
+    
+
+    <audio id="gameOverSound" src="sounds/gameOver1.mp3"></audio>
+    <audio id="gameOverSound2" src="sounds/gameOver2.mp3"></audio>
+    <audio id="gameOverSound3" src="sounds/gameOver3.mp3"></audio>
+    <audio id="gameOverSound4" src="sounds/gameOver4.mp3"></audio>
+    <audio id="gameOverSound5" src="sounds/gameOver5.mp3"></audio>
+    <audio id="gameOverSound6" src="sounds/gameOver6.mp3"></audio>
+    <audio id="gameOverSound7" src="sounds/gameOver7.mp3"></audio>
+    <audio id="gameOverSound8" src="sounds/gameOver8.mp3"></audio>
+    <audio id="gameOverSound9" src="sounds/gameOver9.mp3"></audio>
+    <audio id="gameOverSound10" src="sounds/gameOver10.mp3"></audio>
+    <audio id="gameOverSound11" src="sounds/gameOver11.mp3"></audio>
+    <audio id="gameOverSound12" src="sounds/gameOver12.mp3"></audio>
+    <audio id="gameOverSound13" src="sounds/gameOver13.mp3"></audio>
+    <audio id="gameOverSound14" src="sounds/gameOver14.mp3"></audio>
+    <audio id="gameOverSound15" src="sounds/gameOver15.mp3"></audio>
+
+
+    <audio id="itemPickupSound" src="sounds/itemPickup1.mp3"></audio>
+    <audio id="itemPickupSound2" src="sounds/itemPickup2.mp3"></audio>
+    <audio id="itemPickupSound3" src="sounds/itemPickup3.mp3"></audio>
+    <audio id="itemPickupSound4" src="sounds/itemPickup4.mp3"></audio>
+    <audio id="itemPickupSound5" src="sounds/itemPickup5.mp3"></audio>
+    <audio id="itemPickupSound6" src="sounds/itemPickup6.mp3"></audio>
+    <audio id="itemPickupSound7" src="sounds/itemPickup7.mp3"></audio>
+    <audio id="itemPickupSound8" src="sounds/itemPickup8.mp3"></audio>
+    <audio id="itemPickupSound9" src="sounds/itemPickup9.mp3"></audio>
+    <audio id="itemPickupSound10" src="sounds/itemPickup10.mp3"></audio>
+    <audio id="itemPickupSound11" src="sounds/itemPickup11.mp3"></audio>
+    <audio id="itemPickupSound12" src="sounds/itemPickup12.mp3"></audio>
+    <audio id="itemPickupSound13" src="sounds/itemPickup13.mp3"></audio>
+    <audio id="itemPickupSound14" src="sounds/itemPickup14.mp3"></audio>
+    <audio id="itemPickupSound15" src="sounds/itemPickup15.mp3"></audio>
+    <audio id="bgm" src="sounds/bgm.mp3" loop></audio>
+    </body>
+
+
+
+
+</body>
+
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+// プレイヤーの設定に新しいプロパティを追加
+
+let score = 0;
+let highScore = localStorage.getItem('highScore') || 0; // ハイスコアの初期値
+let timer = 0;
+let gameOver = false;
+let keys = { up: false, down: false }; // 上下キー状態
+let obstacles = []; // 障害物配列
+let powerUps = []; // パワーアップアイテム配列
+let playerSpeed = 2; // 初期プレイヤーの速度
+let scoreMultiplier = 1; // スコア倍率
+let descriptionTimeout = null; // 説明表示用のタイマー
+let originalObstacleSpeed; // 障害物の元の速度を保存する変数
+let obstacleSpeed = 2; // 初期スピード
+let obstacleSpawnInterval = 1500; // 初期出現間隔（ミリ秒）
+let lastObstacleSpawnTime = 0;
+let speedIncreaseCounter = 0; // スピードの増加を制御するためのカウンター
+let showGameOverImage = localStorage.getItem('showGameOverImage') === 'true' || false;
+
+
+// 効果音とセリフのペア
+const gameOverSounds = [
+    { sound: document.getElementById('gameOverSound'), phrase: "残念！" },
+    { sound: document.getElementById('gameOverSound2'), phrase: "羊:あぁあやっちゃったねぇ" },
+    { sound: document.getElementById('gameOverSound3'), phrase: "トミー:君の実力もそんなものか" },
+    { sound: document.getElementById('gameOverSound4'), phrase: "羊:THE END!!!" },
+    { sound: document.getElementById('gameOverSound5'), phrase: "三上先生:うぎゃぁぁぁぁ" },
+    { sound: document.getElementById('gameOverSound6'), phrase: "藤澤先生:ガビーン" },
+    { sound: document.getElementById('gameOverSound7'), phrase: "鈴木先生:終わったー！" },
+    { sound: document.getElementById('gameOverSound8'), phrase: "小林克先生:さよ〜なら〜" },
+    { sound: document.getElementById('gameOverSound9'), phrase: "小口先生:マジかー" },
+    { sound: document.getElementById('gameOverSound10'), phrase: "柘植:こんなゲームやめちまえ" },
+    { sound: document.getElementById('gameOverSound11'), phrase: "柘植？:何やってるんですか、勉強してください!" },
+    { sound: document.getElementById('gameOverSound12'), phrase: "小林敏先生:まだまだ" },
+    { sound: document.getElementById('gameOverSound13'), phrase: "教頭先生:あぁあやられちゃったもう一回やろ" },
+    { sound: document.getElementById('gameOverSound14'), phrase: "関澤先生:ｳｯ!!" },
+    { sound: document.getElementById('gameOverSound14'), phrase: "Tスピン爺:IRP (安らかに眠れ)" },
+].filter(item => item.sound !== null);
+
+const itemPickupSounds = [
+    { sound: document.getElementById('itemPickupSound'), phrase: "パワーアップ！" },
+    { sound: document.getElementById('itemPickupSound2'), phrase: "トミー:うめぇ" },
+    { sound: document.getElementById('itemPickupSound3'), phrase: "羊パックンチョ！" },
+    { sound: document.getElementById('itemPickupSound4'), phrase: "羊:ゲッチュー" },
+    { sound: document.getElementById('itemPickupSound5'), phrase: "三上先生:うぉぉぉぉぉ" },
+    { sound: document.getElementById('itemPickupSound6'), phrase: "鈴木先生:よっしゃー" },
+    { sound: document.getElementById('itemPickupSound7'), phrase: "藤澤先生:ｳｯﾎｳ" },
+    { sound: document.getElementById('itemPickupSound8'), phrase: "小林克先生:もぐもぐ" },
+    { sound: document.getElementById('itemPickupSound9'), phrase: "小口先生:美味しー" },
+    { sound: document.getElementById('itemPickupSound10'), phrase: "柘植:取んじゃねぇぇぇぇぇぇぇぇぇ" },
+    { sound: document.getElementById('itemPickupSound11'), phrase: "柘植:死ねぇぇぇぇぇぇぇぇぇぇぇぇ" },
+    { sound: document.getElementById('itemPickupSound12'), phrase: "小林敏先生:はやくなーい？" },
+    { sound: document.getElementById('itemPickupSound13'), phrase: "教頭先生:やった無敵だ！" },
+    { sound: document.getElementById('itemPickupSound14'), phrase: "関澤先生:やったやったー" },
+    { sound: document.getElementById('itemPickupSound15'), phrase: "Tスピン爺:馬鹿じゃないの〜" },
+].filter(item => item.sound !== null);
+
+// 通知を表示する関数
+function showSoundNotification(text) {
+    const notificationElement = document.getElementById('soundNotification');
+    if (notificationElement) {
+        notificationElement.textContent = text;
+        notificationElement.style.display = 'block';
+        
+        // 3秒後に非表示
+        setTimeout(() => {
+            notificationElement.style.display = 'none';
+        }, 3000);
+    } else {
+        console.error('効果音通知エリアが見つかりません。');
+    }
+}
+
+gameOverSound.volume = 0.5; // 最大音量
+gameOverSound2.volume = 0.5; // 最大音量
+gameOverSound3.volume = 1.0; // 最大音量
+gameOverSound4.volume = 1.0; // 最大音量
+gameOverSound5.volume = 0.7; // 最大音量
+gameOverSound6.volume = 1.0; // 最大音量
+gameOverSound7.volume = 0.5;
+gameOverSound8.volume = 0.5; // 最大音量
+gameOverSound9.volume = 0.5;
+gameOverSound10.volume = 0.5;
+gameOverSound11.volume = 0.5;
+gameOverSound12.volume = 0.5;
+itemPickupSound.volume = 1.0;
+itemPickupSound2.volume = 1.0;
+itemPickupSound3.volume = 1.0;
+itemPickupSound4.volume = 0.7;
+itemPickupSound5.volume = 0.7;
+itemPickupSound6.volume = 0.5;
+itemPickupSound7.volume = 1.0;
+itemPickupSound8.volume = 1.0;
+itemPickupSound9.volume = 1.0;
+itemPickupSound10.volume = 0.3;
+itemPickupSound11.volume = 0.3;
+itemPickupSound12.volume = 1.0;
+
+
+// スコアに基づくスピードと出現間隔の計算
+function updateSpeedAndSpawnRate() {
+    if (score % 100 === 0 && score > 0) { // スコアが100ごとに速度を微調整
+        speedIncreaseCounter++;
+
+        // スピード増加のロジックを修正
+        if (speedIncreaseCounter % 5 === 0) { // 500スコアごとに速度を大きく調整
+            obstacleSpeed = Math.min(15, obstacleSpeed + 15); // 最大速度は15に設定
+            obstacleSpawnInterval = Math.max(500, obstacleSpawnInterval - 50); // 大きな調整
+        } else {
+            obstacleSpeed = Math.min(15, obstacleSpeed + 0.05); // 最大速度は15に設定、少しずつ増加
+            obstacleSpawnInterval = Math.max(500, obstacleSpawnInterval - 50); // 少しずつ間隔を短縮
+        }
+    }
+}
+
+// 障害物の生成（複数生成に対応）
+function generateObstacles() {
+    // 基本の障害物
+    const obstacle = {
+        x: canvas.width,
+        y: Math.random() * (canvas.height - 30), // ランダムな高さ
+        width: 30,
+        height: 30,
+        speed: obstacleSpeed, // 現在のスピードを適用
+    };
+    obstacles.push(obstacle);
+
+    // 複数生成ロジック（スコアに応じて追加）
+    const additionalObstacles = Math.min(1000, Math.floor(score / 100)); // スコア100ごとに1つ追加、最大10個
+    for (let i = 0; i < additionalObstacles; i++) {
+        const extraObstacle = {
+            x: canvas.width + Math.random() * 100, // 少しずれた位置で生成
+            y: Math.random() * (canvas.height - 30),
+            width: 30,
+            height: 30,
+            speed: obstacleSpeed, // 現在のスピードを適用
+        };
+        obstacles.push(extraObstacle);
+    }
+}
+
+// ゲームループ、障害物の更新、スコアの更新などは前と同様なので省略
+
+// 初期化
+requestAnimationFrame(gameLoop);
+
+// ハイスコアを表示
+document.getElementById('highScore').textContent = highScore;
+
+// キー入力を監視
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
+    if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'w') keys.up = false;
+    if (e.key === 'ArrowDown' || e.key === 's') keys.down = false;
+});
+
+// プレイヤーの更新
+function updatePlayer() {
+    if (keys.up && player.y > 0) player.y -= player.speed; // 上に移動
+    if (keys.down && player.y + player.height < canvas.height) player.y += player.speed; // 下に移動
+
+    // アニメーションステップ更新
+    player.animationStep = (player.animationStep + 1) % 20;
+}
+
+// プレイヤーの描画
+function drawPlayer() {
+    ctx.save();
+
+    // シャドウとエフェクト
+    ctx.shadowColor = player.invincible ? '#fff700' : '#ffffff';
+    ctx.shadowBlur = player.invincible ? 20 : 10;
+    ctx.fillStyle = player.invincible ? 'yellow' : '#e3d8b8';
+
+    // キャラクター描画
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // アニメーション: 光の変化
+    if (player.animationStep % 10 < 5) {
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+    }
+    ctx.restore();
+}
+
+// 障害物の生成
+function generateObstacle() {
+    const obstacleHeight = 100 + Math.random() * 200; // 高さをランダムに設定（縦長）
+    obstacles.push({
+        x: canvas.width,
+        y: Math.random() * (canvas.height - obstacleHeight),
+        width: 30 + Math.random() * 50,
+        height: obstacleHeight,
+        speed: obstacleSpeed
+    });
+}
+
+for (let i = 0; i < 3; i++) generateObstacle();
+
+// パワーアップアイテムの生成関数を修正
+function generatePowerUp() {
+    const randomValue = Math.random(); // 0〜1のランダム値
+    let color;
+
+    // 出現率を設定（新しい割合に調整）
+    if (randomValue < 0.40) {
+        color = 'blue'; // 青 40%
+    } else if (randomValue < 0.80) {
+        color = 'yellow'; // 黄色 40%（0.40〜0.80の範囲）
+    } else if (randomValue < 0.95) {
+        color = 'green'; // 緑 15%（0.80〜0.95の範囲）
+    } else {
+        color = 'purple'; // 紫 10%（0.95〜1.00の範囲）
+    }
+
+    // 障害物に埋まらないように配置位置を調整
+    let positionValid = false;
+    let powerUpX = canvas.width;
+    let powerUpY;
+
+    while (!positionValid) {
+        powerUpY = Math.random() * (canvas.height - 30);
+        positionValid = !obstacles.some(obstacle => 
+            powerUpX < obstacle.x + obstacle.width &&
+            powerUpX + 30 > obstacle.x &&
+            powerUpY < obstacle.y + obstacle.height &&
+            powerUpY + 30 > obstacle.y
+        );
+    }
+
+    powerUps.push({
+        x: powerUpX,
+        y: powerUpY,
+        radius: 15,
+        speed: obstacleSpeed,
+        color: color
+    });
+}
+
+// 障害物を更新する関数
+function updateObstacles() {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
+        obstacle.x -= obstacleSpeed;
+
+        if (obstacle.x + obstacle.width < 0) {
+            obstacles.splice(i, 1);
+            score += 100;
+        }
+    }
+
+    if (score % 1000 === 0 && score !== 0) {
+        obstacleSpeed += 1;
+    }
+}
+
+// パワーアップアイテムの更新
+function updatePowerUps() {
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        powerUps[i].x -= powerUps[i].speed;
+        if (powerUps[i].x + powerUps[i].radius < 0) {
+            powerUps.splice(i, 1);
+        } else {
+            // 円形のアイテムと矩形のプレイヤーの衝突判定を修正
+            // 円の中心とプレイヤーの矩形の4つの角の距離を計算
+            const dx = powerUps[i].x - player.x;
+            const dy = powerUps[i].y - player.y;
+            const playerBottom = player.y + player.height;
+            const playerRight = player.x + player.width;
+
+            // プレイヤー全体の矩形とアイテムの円の衝突判定
+            const closestX = Math.max(player.x, Math.min(powerUps[i].x, playerRight));
+            const closestY = Math.max(player.y, Math.min(powerUps[i].y, playerBottom));
+            const distanceX = powerUps[i].x - closestX;
+            const distanceY = powerUps[i].y - closestY;
+            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+            if (distance < powerUps[i].radius) {
+                applyPowerUp(powerUps[i].color);
+                powerUps.splice(i, 1);
+            }
+        }
+    }
+}
+
+// パワーアップの効果を適用関数を修正
+function applyPowerUp(color) {
+    // ランダムに効果音を選択
+    if (itemPickupSounds.length > 0) {
+        const randomIndex = Math.floor(Math.random() * itemPickupSounds.length);
+        const { sound, phrase } = itemPickupSounds[randomIndex];
+
+        // 効果音再生
+        sound.currentTime = 0; // 再生位置をリセット
+        sound.play().then(() => {
+            showSoundNotification(phrase);
+        }).catch(error => {
+            console.error('音声再生エラー:', error);
+        });
+    } else {
+        console.error('アイテム取得音声が見つかりませんでした。');
+    }
+
+    // パワーアップ効果の適用
+    if (color === 'blue') {
+        scoreMultiplier = 2;
+        player.scoreBoostDuration += 10000; // 10秒を加算
+        showItemDescription('スコアが2倍！効果時間を延長！');
+    } else if (color === 'green') {
+        player.invincible = true;
+        player.invincibilityDuration += 10000; // 5秒に設定
+        showItemDescription('無敵！効果時間を5秒に設定！');
+    } else if (color === 'yellow') {
+        // 黄色アイテムの効果は既に変更済み
+        player.speed = Math.min(player.speed + 0.5, 20); // スピードを最大20まで増加
+        showItemDescription('プレイヤーの移動速度が上昇！');
+    } else if (color === 'purple') {
+    player.obstacleSlowdownDuration = 10000; // 10秒間
+    originalObstacleSpeed = obstacleSpeed; // 元のスピードを保存
+    obstacleSpeed = Math.max(0.5, obstacleSpeed - 1); // 速度を1減少、最低0.5に設定
+    document.getElementById('obstacleSlowdownTimer').style.display = 'block'; // 表示をオンに
+    showItemDescription('障害物の速度が遅くなる！10秒間効果！');
+}
+}
+// 新しい関数: 障害物の速度低下効果の時間表示を更新
+function updateItemStatus() {
+    document.getElementById('invincibilityTimer').textContent = Math.max(0, Math.ceil(player.invincibilityDuration / 1000));
+    document.getElementById('scoreBoostTimer').textContent = Math.max(0, Math.ceil(player.scoreBoostDuration / 1000));
+    const obstacleSlowdownTimeElement = document.getElementById('obstacleSlowdownTime');
+    if (player.obstacleSlowdownDuration > 0) {
+        obstacleSlowdownTimeElement.textContent = Math.max(0, Math.ceil(player.obstacleSlowdownDuration / 1000));
+    } else {
+        document.getElementById('obstacleSlowdownTimer').style.display = 'none';
+    }
+}
+
+
+
+function showItemDescription(text) {
+    const itemDescription = document.getElementById('itemDescription');
+    itemDescription.textContent = text;
+    itemDescription.style.display = 'block';
+
+    // 既存のタイムアウトをクリア
+    if (descriptionTimeout) clearTimeout(descriptionTimeout);
+    descriptionTimeout = setTimeout(() => {
+        itemDescription.style.display = 'none';
+    }, 3000); // 3秒後に非表示
+}
+
+// プレイヤーの設定に新しいプロパティを追加（既に上記で追加済み）
+const player = {
+    x: 50,
+    y: canvas.height / 2,
+    width: 50,
+    height: 50,
+    speed: 5,
+    invincible: false,
+    animationStep: 0,
+    invincibilityDuration: 0, // 無敵状態の残り時間（ミリ秒）
+    scoreBoostDuration: 0, // スコア倍増の残り時間（ミリ秒）
+    obstacleSlowdownDuration: 0 // 障害物速度低下の残り時間（ミリ秒）
+};
+
+
+
+
+// ゲームループ内で障害物生成を時間に基づいて調整
+function gameLoop() {
+    if (gameOver) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    updatePlayer();
+    updateObstacles();
+    updatePowerUps();
+
+    drawPlayer();
+    drawObstacles();
+    drawPowerUps();
+
+    checkCollision();
+    updateScore();
+    timer++;
+    updateTimer();
+
+    // アイテム効果の時間を更新
+    if (player.invincibilityDuration > 0) {
+        player.invincibilityDuration -= 17; // 60FPSで1フレームの時間
+        if (player.invincibilityDuration <= 0) {
+            player.invincible = false;
+            player.invincibilityDuration = 0;
+        }
+    }
+    
+    if (player.scoreBoostDuration > 0) {
+        player.scoreBoostDuration -= 17; // 60FPSで1フレームの時間
+        if (player.scoreBoostDuration <= 0) {
+            scoreMultiplier = 1;
+            player.scoreBoostDuration = 0;
+        }
+    }
+
+    // 障害物の速度低下効果の時間を更新
+    if (player.obstacleSlowdownDuration > 0) {
+        player.obstacleSlowdownDuration -= 17; // 60FPSで1フレームの時間
+        if (player.obstacleSlowdownDuration <= 0) {
+            // 効果が切れたら元の速度に戻す
+            obstacleSpeed = originalObstacleSpeed;
+            player.obstacleSlowdownDuration = 0;
+        }
+    }
+
+
+    updateItemStatus();
+
+    // 時間経過に伴う障害物の生成速度の増加
+    increaseObstacleSpawnRate();
+
+    // 障害物の生成
+    if (Date.now() - lastObstacleSpawnTime > obstacleSpawnInterval) {
+        generateObstacle();
+        lastObstacleSpawnTime = Date.now();
+        if (Math.random() < 0.5) generatePowerUp(); // 50%の確率でパワーアップ生成
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+// 障害物の生成間隔を時間に基づいて短縮する関数
+function increaseObstacleSpawnRate() {
+    // 例えば、10秒ごとに生成間隔を50ミリ秒短縮
+    if (timer % (60 * 10) === 0) { // 60フレーム * 10秒 = 600フレームごと
+        obstacleSpawnInterval = Math.max(500, obstacleSpawnInterval - 50); // 最低500ミリ秒に設定
+        // 障害物のスピードも同時に微調整
+        obstacleSpeed = Math.min(15, obstacleSpeed + 0.1); // 最大速度15に設定
+    }
+}
+
+// 障害物生成関数
+function generateObstacle() {
+    const obstacleHeight = 100 + Math.random() * 200; // 高さをランダムに設定（縦長）
+    obstacles.push({
+        x: canvas.width,
+        y: Math.random() * (canvas.height - obstacleHeight),
+        width: 30 + Math.random() * 50,
+        height: obstacleHeight,
+        speed: obstacleSpeed
+    });
+}
+
+    updateItemStatus(); // アイテム効果の時間を表示
+
+    if (timer % 100 === 0) {
+        generateObstacle();
+        if (Math.random() < 0.5) generatePowerUp(); // 50%の確率でパワーアップ生成
+    }
+
+    requestAnimationFrame(gameLoop);
+
+// 障害物を描画
+function drawObstacles() {
+    ctx.fillStyle = 'red';
+    for (const obstacle of obstacles) {
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    }
+}
+
+// パワーアップを描画
+function drawPowerUps() {
+    for (const powerUp of powerUps) {
+        ctx.beginPath();
+        ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
+        // 色を直接設定
+        if (powerUp.color === 'purple') {
+            ctx.fillStyle = '#800080'; // 紫色
+        } else {
+            ctx.fillStyle = powerUp.color;
+        }
+        ctx.fill();
+        ctx.closePath();
+    }
+}
+
+let elapsedTime = 0; // 経過時間（ミリ秒）
+let lastTime = Date.now(); // 最後の更新時間
+
+// タイマーを更新して表示
+function updateTimer() {
+    const now = Date.now();
+    elapsedTime += now - lastTime; // 経過時間を積算
+    lastTime = now; // 最後の更新時間を更新
+
+    // 経過時間を秒単位に変換
+    const seconds = Math.floor(elapsedTime / 1000);
+    document.getElementById('timer').textContent = seconds;
+}
+
+// 衝突判定
+function checkCollision() {
+    for (const obstacle of obstacles) {
+        if (
+            player.x < obstacle.x + obstacle.width &&
+            player.x + player.width > obstacle.x &&
+            player.y < obstacle.y + obstacle.height &&
+            player.y + player.height > obstacle.y
+        ) {
+            if (!player.invincible) {
+                endGame();
+            }
+        }
+    }
+}
+
+// スコアを更新
+function updateScore() {
+    score += 1 * scoreMultiplier;
+    document.getElementById('score').textContent = score;
+
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+        document.getElementById('highScore').textContent = highScore;
+    }
+}
+
+// ゲーム終了
+function endGame() {
+    gameOver = true;
+    document.getElementById('retryButton').style.display = 'block';
+    showItemDescription('Game Over!');
+    
+    // ゲームオーバー画像のランダム表示
+    const gameOverImages = [
+        document.getElementById('gameOverImage1'),
+        document.getElementById('gameOverImage2'),
+        document.getElementById('gameOverImage3'),
+        document.getElementById('gameOverImage4'),
+        document.getElementById('gameOverImage5'),
+    ];
+
+    if (showGameOverImage && gameOverImages.some(img => img)) {
+        const randomIndex = Math.floor(Math.random() * gameOverImages.length);
+        const selectedImage = gameOverImages[randomIndex];
+
+        if (selectedImage) {
+            selectedImage.style.display = 'block';
+            selectedImage.style.width = `${canvas.width}px`;
+            selectedImage.style.height = `${canvas.height}px`;
+            selectedImage.style.top = canvas.offsetTop + 'px';
+            selectedImage.style.left = canvas.offsetLeft + 'px';
+            
+            // 他の画像を非表示にする
+            gameOverImages.forEach(img => {
+                if (img !== selectedImage) {
+                    img.style.display = 'none';
+                }
+            });
+        } else {
+            console.error('ゲームオーバーの画像要素が見つかりません。');
+        }
+    } else {
+        // 画像非表示設定の場合、すべての画像を非表示に
+        gameOverImages.forEach(img => {
+            if (img) {
+                img.style.display = 'none';
+            }
+        });
+    }
+
+    // 音声の再生
+    if (gameOverSounds.length > 0) {
+        const randomIndex = Math.floor(Math.random() * gameOverSounds.length);
+        const { sound, phrase } = gameOverSounds[randomIndex];
+
+        function playSound(sound) {
+            sound.pause(); // 再生中なら停止
+            sound.currentTime = 0; // 再生位置をリセット
+            sound.play().then(() => {
+                console.log('再生成功:', sound.src);
+                showSoundNotification(phrase);
+            }).catch((error) => {
+                console.error('再生エラー:', error);
+            });
+        }
+
+        playSound(sound);
+    } else {
+        console.error('ゲームオーバー音声が見つかりませんでした。');
+    }
+}
+
+function restartGame() {
+    score = 0;
+    timer = 0;
+    elapsedTime = 0;
+    lastTime = Date.now();
+    obstacles = [];
+    powerUps = [];
+    player.x = 50;
+    player.y = canvas.height / 2;
+    player.invincible = false;
+    player.speed = 5; // 初期速度
+    scoreMultiplier = 1; // これが2倍になっていた可能性があるため、明示的に1に設定
+    gameOver = false;
+    obstacleSpeed = 2; // 初期速度
+    obstacleSpawnInterval = 1500; // 初期生成間隔
+    lastObstacleSpawnTime = 0;
+    speedIncreaseCounter = 0;
+    obstacleSpeed = 2;
+    player.obstacleSlowdownDuration = 0; // 新しいプロパティをリセット
+    
+    // 他の変数もここでリセット
+    document.getElementById('score').textContent = score;
+    document.getElementById('retryButton').style.display = 'none';
+    // すべてのゲームオーバー画像を非表示にする
+    const gameOverImages = [
+        document.getElementById('gameOverImage1'),
+        document.getElementById('gameOverImage2'),
+        document.getElementById('gameOverImage3'),
+        document.getElementById('gameOverImage4'),
+        document.getElementById('gameOverImage5')
+    ];
+    gameOverImages.forEach(img => {
+        if (img) {
+            img.style.display = 'none';
+        } else {
+            console.error('ゲームオーバーの画像要素が見つかりません。');
+        }
+    });
+
+    // 効果時間をリセット
+    player.invincibilityDuration = 0;
+    player.scoreBoostDuration = 0;
+
+    gameLoop();
+}
+
+// 自動再生を試みる
+document.addEventListener('DOMContentLoaded', function() {
+    var bgm = document.getElementById('bgm');
+    
+    // すぐに再生を試みる
+    bgm.play().catch(function(error) {
+        console.error('自動再生に失敗:', error);
+        // 自動再生が失敗した場合の代替策
+        document.body.addEventListener('click', function onClick() {
+            bgm.play().catch(function(error) {
+                console.error('再生エラー:', error);
+            });
+            // イベントリスナーを削除
+            document.body.removeEventListener('click', onClick);
+        });
+    });
+});
+
+// タイマーを更新して表示
+function updateTimer() {
+    const seconds = Math.floor(timer / 60); // 1秒ごとに増加
+    document.getElementById('timer').textContent = seconds;
+}
+
+// 既存のコード...
+
+
+// 新しい関数: タイマーを更新して表示
+function updateTimer() {
+    const seconds = Math.floor(timer / 60); // 1秒ごとに増加
+    document.getElementById('timer').textContent = seconds;
+}
+
+
+// モーダルの表示と非表示
+function openSettingsModal() {
+    document.getElementById('settingsModal').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+}
+
+function closeSettingsModal() {
+    var settingsModal = document.getElementById('settingsModal');
+    var overlay = document.getElementById('overlay');
+    
+    if (settingsModal) settingsModal.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+}
+
+// 設定ボタンをクリックしたときの処理
+document.getElementById('settingsButton').addEventListener('click', openSettingsModal);
+
+// 効果音とBGMのミュート設定
+const muteSounds = document.getElementById('muteSounds');
+const muteBGM = document.getElementById('muteBGM');
+
+muteSounds.addEventListener('change', function() {
+    const sounds = [].slice.call(document.querySelectorAll('audio:not(#bgm)'));
+    sounds.forEach(sound => {
+        sound.muted = muteSounds.checked;
+    });
+});
+
+muteBGM.addEventListener('change', function() {
+    const bgm = document.getElementById('bgm');
+    bgm.muted = muteBGM.checked;
+});
+
+// DOMContentLoaded イベントで初期設定
+document.addEventListener('DOMContentLoaded', function() {
+    // 既存の初期化処理をここに...
+    // 設定の初期化
+    muteSounds.checked = localStorage.getItem('muteSounds') === 'true';
+    muteBGM.checked = localStorage.getItem('muteBGM') === 'true';
+    document.getElementById('showGameOverImage').checked = showGameOverImage;
+    
+    // 音量スライダーの初期値
+    var bgmVolume = document.getElementById('bgmVolume');
+    var effectsVolume = document.getElementById('effectsVolume');
+    bgmVolume.value = localStorage.getItem('bgmVolume') || 1;
+    effectsVolume.value = localStorage.getItem('effectsVolume') || 1;
+
+    // 初期設定を適用
+    muteSounds.dispatchEvent(new Event('change'));
+    muteBGM.dispatchEvent(new Event('change'));
+    bgmVolume.dispatchEvent(new Event('input'));
+    effectsVolume.dispatchEvent(new Event('input'));
+});
+
+// 設定を保存関数に音量スライダーの値を追加
+function saveSettings() {
+    localStorage.setItem('muteSounds', muteSounds.checked);
+    localStorage.setItem('muteBGM', muteBGM.checked);
+    localStorage.setItem('showGameOverImage', document.getElementById('showGameOverImage').checked);
+    localStorage.setItem('bgmVolume', document.getElementById('bgmVolume').value);
+    localStorage.setItem('effectsVolume', document.getElementById('effectsVolume').value);
+}
+
+// モーダルを閉じるときに設定を保存
+document.getElementById('settingsModal').querySelector('button').addEventListener('click', saveSettings);
+
+// 既存のコードの残り...
+
+// 設定関連のコードに新しい項目を追加
+document.addEventListener('DOMContentLoaded', function() {
+    // 既存の初期化処理をここに...
+    // 設定の初期化
+    muteSounds.checked = localStorage.getItem('muteSounds') === 'true';
+    muteBGM.checked = localStorage.getItem('muteBGM') === 'true';
+    document.getElementById('showGameOverImage').checked = showGameOverImage;
+    
+    // 初期設定を適用
+    muteSounds.dispatchEvent(new Event('change'));
+    muteBGM.dispatchEvent(new Event('change'));
+});
+
+// 設定保存関数に新しい設定項目を追加
+function saveSettings() {
+    localStorage.setItem('muteSounds', muteSounds.checked);
+    localStorage.setItem('muteBGM', muteBGM.checked);
+    localStorage.setItem('showGameOverImage', document.getElementById('showGameOverImage').checked);
+}
+
+// 新しい設定項目の変更イベントリスナー
+document.getElementById('showGameOverImage').addEventListener('change', function() {
+    showGameOverImage = this.checked;
+});
+
+// BGMミュートチェックボックスのリスナー
+document.getElementById('muteBGM').addEventListener('change', function() {
+    const bgm = document.getElementById('bgm');
+    bgm.muted = this.checked;
+    // スライダーの無効化/有効化
+    document.getElementById('bgmVolume').disabled = this.checked;
+});
+
+// 効果音ミュートチェックボックスのリスナー
+document.getElementById('muteEffects').addEventListener('change', function() {
+    const effects = [
+        'gameOverSound', 'gameOverSound2', 'gameOverSound3', 'gameOverSound4', 'gameOverSound5', 
+        'gameOverSound6', 'gameOverSound7', 'gameOverSound8', 'itemPickupSound', 'itemPickupSound2', 
+        'itemPickupSound3', 'itemPickupSound4', 'itemPickupSound5', 'itemPickupSound6', 
+        'itemPickupSound7', 'itemPickupSound8'
+    ];
+
+    effects.forEach(id => {
+        const sound = document.getElementById(id);
+        if (sound) {
+            sound.muted = this.checked;
+        }
+    });
+    // スライダーの無効化/有効化
+    document.getElementById('effectsVolume').disabled = this.checked;
+});
+
+// BGM音量スライダーのリスナー
+document.getElementById('bgmVolume').addEventListener('input', function() {
+    const bgm = document.getElementById('bgm');
+    bgm.volume = this.value;
+});
+
+// 効果音の音量スライダーのリスナー
+document.getElementById('effectsVolume').addEventListener('input', function() {
+    const effects = [
+        'gameOverSound', 'gameOverSound2', 'gameOverSound3', 'gameOverSound4', 'gameOverSound5', 
+        'gameOverSound6', 'gameOverSound7', 'gameOverSound8', 'itemPickupSound', 'itemPickupSound2', 
+        'itemPickupSound3', 'itemPickupSound4', 'itemPickupSound5', 'itemPickupSound6', 
+        'itemPickupSound7', 'itemPickupSound8'
+    ];
+
+    effects.forEach(id => {
+        const sound = document.getElementById(id);
+        if (sound) {
+            sound.volume = this.value;
+        }
+    });
+});
+
+
+// ゲーム開始時の初期化
+function initGame() {
+    // 必要な初期化処理
+    restartGame();
+}
+
+// DOMContentLoaded イベントでゲームを初期化
+document.addEventListener('DOMContentLoaded', initGame)
+
+// BGM音量スライダーのリスナー
+document.getElementById('bgmVolume').addEventListener('input', function() {
+    const bgm = document.getElementById('bgm');
+    bgm.volume = this.value;
+});
+
+// 効果音の音量スライダーのリスナー
+document.getElementById('effectsVolume').addEventListener('input', function() {
+    const effects = [
+        'gameOverSound', 'gameOverSound2', 'gameOverSound3', 'gameOverSound4', 'gameOverSound5', 
+        'gameOverSound6', 'gameOverSound7', 'gameOverSound8', 'itemPickupSound', 'itemPickupSound2', 
+        'itemPickupSound3', 'itemPickupSound4', 'itemPickupSound5', 'itemPickupSound6', 
+        'itemPickupSound7', 'itemPickupSound8'
+    ];
+
+    effects.forEach(id => {
+        const sound = document.getElementById(id);
+        if (sound) {
+            sound.volume = this.value;
+        }
+    });
+});
+
+
+muteSounds.addEventListener('change', function() {
+    const sounds = [].slice.call(document.querySelectorAll('audio:not(#bgm)'));
+    sounds.forEach(sound => {
+        sound.muted = muteSounds.checked;
+    });
+    // スライダーの無効化/有効化
+    document.getElementById('effectsVolume').disabled = this.checked;
+});
+
+muteBGM.addEventListener('change', function() {
+    const bgm = document.getElementById('bgm');
+    bgm.muted = muteBGM.checked;
+    // スライダーの無効化/有効化
+    document.getElementById('bgmVolume').disabled = this.checked;
+});
+
+
+
+gameLoop();
+    </script>
+</body>
+</html>
